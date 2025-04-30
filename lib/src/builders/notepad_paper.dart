@@ -1,16 +1,9 @@
 import 'package:flutter/material.dart';
 
 class NotepadPaper extends StatefulWidget {
-  const NotepadPaper({
-    super.key,
-    required this.child,
-    required this.width,
-    required this.height,
-  });
+  const NotepadPaper({super.key, required this.child});
 
   final Widget child;
-  final double width;
-  final double height;
 
   @override
   State<NotepadPaper> createState() => _NotepadPaperState();
@@ -20,12 +13,14 @@ class _NotepadPaperState extends State<NotepadPaper> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: widget.width,
-      height: widget.height,
       color: Colors.amber.shade100,
       child: CustomPaint(
         painter: NoteLinePainter(),
-        child: widget.child,
+        child: Stack(
+          children: [
+            widget.child,
+          ],
+        ),
       ),
     );
   }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:notepad/src/builders/notepad_paper.dart';
 
+import 'builders/notepad_paper.dart';
 import 'utils/cover_widget.dart';
 
 class NotepadWidget extends StatefulWidget {
@@ -38,22 +38,25 @@ class _NotepadWidgetState extends State<NotepadWidget> {
     _setUp();
   }
 
+  @override
+  void didUpdateWidget(covariant NotepadWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+  }
+
   void _setUp() {
     pages.clear();
     for (var i = 0; i < widget.children.length; i++) {
-      final child = NotepadPaper(
-        width: widget.width,
-        height: widget.height,
-        child: widget.children[i],
-      );
+      final child = NotepadPaper(child: widget.children[i]);
       pages.add(child);
     }
-    pages = pages.reversed.toList();
+    pages = pages.reversed.toList(); //첫 번째 페이지가 가장 먼저 보이도록 함.
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
+      width: widget.width,
+      height: widget.height,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
@@ -65,19 +68,19 @@ class _NotepadWidgetState extends State<NotepadWidget> {
         ],
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           buildHeader(),
-          LayoutBuilder(
-            builder: (context, dimens) => GestureDetector(
-              child: Stack(
-                children: [
-                  NotepadCover(
-                    width: widget.width,
-                    height: widget.height,
-                  ),
-                  if (pages.isNotEmpty) ...pages else const SizedBox.shrink(),
-                ],
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, dimens) => GestureDetector(
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    const NotepadCover(),
+                    if (pages.isNotEmpty) ...pages else const SizedBox.shrink(),
+                  ],
+                ),
               ),
             ),
           ),

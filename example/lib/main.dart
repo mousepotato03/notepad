@@ -16,11 +16,25 @@ class NotePadTestApp extends StatelessWidget {
         body: Center(
           child: NotepadWidget(
             children: [
-              Text("ㅎㅇ"),
+              TestPage(),
             ],
           ),
         ),
       ),
+    );
+  }
+}
+
+class TestPage extends StatelessWidget {
+  const TestPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.green,
+      width: 100,
+      height: 100,
+      child: const Text("hello"),
     );
   }
 }
