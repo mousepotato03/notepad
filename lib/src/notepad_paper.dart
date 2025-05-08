@@ -1,8 +1,25 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 
-class NotepadPaper extends StatefulWidget {
-  const NotepadPaper({super.key, required this.child});
+Map<int, ui.Image?> imageData = {}; //캡쳐된 이미지 저장
+/// 현재 페이지 넘김 애니메이션이 진행 중인 페이지의 인덱스.
+///
+/// - 페이지 넘김이 **비활성화**된 경우: `-1`
+/// - 특정 페이지에서 애니메이션이 **진행 중**인 경우: `>=0`
+ValueNotifier<int> flippingPageIndex = ValueNotifier(-1);
 
+/// 애니메이션 완료 후 렌더링될 페이지의 인덱스
+ValueNotifier<int> visiblePageIndex = ValueNotifier(0);
+
+class NotepadPaper extends StatefulWidget {
+  const NotepadPaper({
+    super.key,
+    required this.swipeAmount,
+    required this.child,
+  });
+
+  final Animation<double> swipeAmount;
   final Widget child;
 
   @override
