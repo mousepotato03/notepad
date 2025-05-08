@@ -16,7 +16,8 @@ class NotePadTestApp extends StatelessWidget {
         body: Center(
           child: NotepadWidget(
             children: [
-              TestPage(),
+              TestPage1(),
+              TestPage2(),
             ],
           ),
         ),
@@ -25,16 +26,36 @@ class NotePadTestApp extends StatelessWidget {
   }
 }
 
-class TestPage extends StatelessWidget {
-  const TestPage({super.key});
+class TestPage1 extends StatelessWidget {
+  const TestPage1({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Colors.green,
-      width: 100,
-      height: 100,
-      child: const Text("hello"),
+    return const Center(
+      child: Text(
+        "Page1",
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 50,
+        ),
+      ),
+    );
+  }
+}
+
+class TestPage2 extends StatelessWidget {
+  const TestPage2({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Text(
+        "Page2",
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 50,
+        ),
+      ),
     );
   }
 }

@@ -1,26 +1,18 @@
-import 'dart:ui' as ui;
-
 import 'package:flutter/material.dart';
-
-Map<int, ui.Image?> imageData = {}; //캡쳐된 이미지 저장
-/// 현재 페이지 넘김 애니메이션이 진행 중인 페이지의 인덱스.
-///
-/// - 페이지 넘김이 **비활성화**된 경우: `-1`
-/// - 특정 페이지에서 애니메이션이 **진행 중**인 경우: `>=0`
-ValueNotifier<int> flippingPageIndex = ValueNotifier(-1);
-
-/// 애니메이션 완료 후 렌더링될 페이지의 인덱스
-ValueNotifier<int> visiblePageIndex = ValueNotifier(0);
 
 class NotepadPaper extends StatefulWidget {
   const NotepadPaper({
     super.key,
-    required this.swipeAmount,
+    required this.dragAmount,
     required this.child,
+    required this.pageIndex,
+    required this.currentPageNotifier,
   });
 
-  final Animation<double> swipeAmount;
+  final Animation<double> dragAmount;
   final Widget child;
+  final int pageIndex;
+  final ValueNotifier<int> currentPageNotifier;
 
   @override
   State<NotepadPaper> createState() => _NotepadPaperState();
@@ -29,16 +21,27 @@ class NotepadPaper extends StatefulWidget {
 class _NotepadPaperState extends State<NotepadPaper> {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Colors.amber.shade100,
-      child: CustomPaint(
-        painter: NoteLinePainter(),
-        child: Stack(
-          children: [
-            widget.child,
-          ],
-        ),
-      ),
+    return ValueListenableBuilder<int>(
+      valueListenable: widget.currentPageNotifier,
+      builder: (context, currentPage, child) {
+        if (widget.pageIndex == currentPage ||
+            widget.pageIndex == currentPage + 1) {
+          return Container(
+            color: Colors.amber.shade100,
+            child: CustomPaint(
+              painter: NoteLinePainter(),
+              child: Stack(
+                children: [
+                  widget.child,
+                ],
+              ),
+            ),
+          );
+        } else {
+          // 다른 페이지는 빈 컨테이너로 표시
+          return Container();
+        }
+      },
     );
   }
 }
