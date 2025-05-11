@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:notepad/utils/custom_debug_print.dart';
 
 import 'cover_widget.dart';
 import 'header_widget.dart';
@@ -11,7 +10,7 @@ class NotepadWidget extends StatefulWidget {
     this.width = 350.0,
     this.height = 500,
     required this.children,
-    this.cutoffForward = 0.6,
+    this.cutoffForward = 0.2,
     this.cutoffBackward = 0.2,
     // this.onFlipStart,
     // this.onFlippedEnd,
@@ -40,31 +39,33 @@ class NotepadWidget extends StatefulWidget {
 
 class _NotepadWidgetState extends State<NotepadWidget>
     with TickerProviderStateMixin {
+  int notepadIndex = 0;
   List<Widget> pages = [];
   final List<AnimationController> _controllers = []; // 각 페이지의 애니메이션 컨트롤러
-  final ValueNotifier<int> _currentPageNotifier = ValueNotifier<int>(0);
-
-  @override
-  void dispose() {
-    for (var c in _controllers) {
-      c.dispose();
-    }
-    _currentPageNotifier.dispose();
-    super.dispose();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _setUp();
-  }
+  bool? _isForward;
 
   @override
   void didUpdateWidget(covariant NotepadWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
   }
 
-  void _setUp() {
+  @override
+  void dispose() {
+    for (var c in _controllers) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize Global Variables
+    imageData = {};
+    currentPage = ValueNotifier(-1);
+    currentPageIndex = ValueNotifier(0);
+
+    // Page setup
     for (var i = 0; i < widget.children.length; i++) {
       final controller = AnimationController(
         vsync: this,
@@ -76,7 +77,7 @@ class _NotepadWidgetState extends State<NotepadWidget>
       final page = NotepadPaper(
         dragAmount: controller,
         pageIndex: i,
-        currentPageNotifier: _currentPageNotifier,
+        key: Key("Page$i"),
         child: widget.children[i],
       );
       pages.add(page);
@@ -84,67 +85,57 @@ class _NotepadWidgetState extends State<NotepadWidget>
     pages = pages.reversed.toList();
   }
 
-  bool? _isDraggingUp;
-  int notepadIndex = 0;
-  double _dragStartY = 0.0; // 드래그 시작 위치
-  double _dragDistance = 0.0; // 드래그 거리
+  bool get isFirstPage => notepadIndex == 0;
+  bool get isLastPage => notepadIndex == pages.length - 1;
+  double dragSum = 0.0;
 
-  bool get _isFirstPage => notepadIndex == 0;
-  bool get _isLastPage => notepadIndex == (pages.length - 1);
+  void _onDragUpdate(DragUpdateDetails details, BoxConstraints dimens) {
+    currentPage.value = notepadIndex;
+    dragSum += details.delta.dy; // 드래그 누적
 
-  void _onDragStart(DragStartDetails details) {
-    _dragStartY = details.globalPosition.dy;
-    _dragDistance = 0.0;
+    // _controllers[notepadIndex].value += details.delta.dy;
+    if (dragSum < -dimens.maxHeight * widget.cutoffForward) {
+      _isForward = true;
+    } else if (dragSum > dimens.maxHeight * widget.cutoffBackward) {
+      _isForward = false;
+    }
   }
 
-  void _onDragUpdate(DragUpdateDetails details) {
-    _dragDistance = details.globalPosition.dy - _dragStartY;
-    _isDraggingUp = _dragDistance < 0;
-
-    if (_isDraggingUp == true) {
-      if (!_isLastPage) {
-        _controllers[notepadIndex].value =
-            1.0 + (_dragDistance / widget.height);
+  Future<void> _onDragFinish() async {
+    if (_isForward != null) {
+      if (_isForward == true && !isLastPage) {
+        // Go Next Page
+        currentPage.value = notepadIndex; // 애니메이션 타겟 설정
+        await _controllers[notepadIndex].reverse();
+        if (mounted) {
+          setState(() => notepadIndex++);
+          if (notepadIndex < pages.length) {
+            currentPageIndex.value = notepadIndex; //위젯 인덱스 업데이트
+          }
+        }
+        currentPage.value = -1; // 애니메이션 종료
+      } else if (_isForward == false && !isFirstPage) {
+        // Go Previous Page
+        currentPage.value = notepadIndex - 1;
+        await _controllers[notepadIndex - 1].forward();
+        if (mounted) {
+          setState(() => notepadIndex--);
+          currentPageIndex.value = notepadIndex; //위젯 인덱스 업데이트
+        }
+        currentPage.value = -1; // 애니메이션 종료
       }
     } else {
-      if (!_isFirstPage) {
-        _controllers[notepadIndex - 1].value =
-            1.0 - (_dragDistance / widget.height);
-      }
+      // // 페이지 이동 없을 시 이전 상태로 복원
+      // if (dragSum < 0) {
+      //   _controllers[notepadIndex].reverse();
+      // } else {
+      //   _controllers[notepadIndex].forward();
+      // }
     }
-  }
 
-  Future _onDragFinish() async {
-    if (_isDraggingUp != null) {
-      if (_isDraggingUp == true) {
-        if (!_isLastPage) {
-          if (_controllers[notepadIndex].value <= widget.cutoffForward) {
-            await _controllers[notepadIndex]
-                .animateTo(0.0, duration: widget.duration);
-            setState(() => notepadIndex += 1);
-            _currentPageNotifier.value = notepadIndex;
-          } else {
-            await _controllers[notepadIndex]
-                .animateTo(1.0, duration: widget.duration);
-          }
-        }
-      } else {
-        if (!_isFirstPage) {
-          if (_controllers[notepadIndex - 1].value >= widget.cutoffBackward) {
-            await _controllers[notepadIndex - 1]
-                .animateTo(1.0, duration: widget.duration);
-            setState(() => notepadIndex -= 1);
-            _currentPageNotifier.value = notepadIndex;
-          } else {
-            await _controllers[notepadIndex - 1]
-                .animateTo(0.0, duration: widget.duration);
-          }
-        }
-      }
-    }
-    _isDraggingUp = null;
-    infoDebugPrint('Drag Ended');
-    infoDebugPrint('currentIndex: $notepadIndex');
+    // 드래그 변수 초기화
+    dragSum = 0.0;
+    _isForward = null;
   }
 
   @override
@@ -174,9 +165,10 @@ class _NotepadWidgetState extends State<NotepadWidget>
             child: LayoutBuilder(
               builder: (context, dimens) => GestureDetector(
                 behavior: HitTestBehavior.opaque,
-                onVerticalDragStart: _onDragStart,
-                onVerticalDragUpdate: _onDragUpdate,
+                onVerticalDragUpdate: (details) =>
+                    _onDragUpdate(details, dimens),
                 onVerticalDragEnd: (details) => _onDragFinish(),
+                onVerticalDragCancel: () => _isForward = null,
                 child: Stack(
                   fit: StackFit.expand,
                   children: [

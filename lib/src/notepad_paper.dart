@@ -1,4 +1,10 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
+
+Map<int, ui.Image?> imageData = {};
+ValueNotifier<int> currentPage = ValueNotifier(-1);
+ValueNotifier<int> currentPageIndex = ValueNotifier(0);
 
 class NotepadPaper extends StatefulWidget {
   const NotepadPaper({
@@ -6,13 +12,11 @@ class NotepadPaper extends StatefulWidget {
     required this.dragAmount,
     required this.child,
     required this.pageIndex,
-    required this.currentPageNotifier,
   });
 
   final Animation<double> dragAmount;
   final Widget child;
   final int pageIndex;
-  final ValueNotifier<int> currentPageNotifier;
 
   @override
   State<NotepadPaper> createState() => _NotepadPaperState();
@@ -22,10 +26,10 @@ class _NotepadPaperState extends State<NotepadPaper> {
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<int>(
-      valueListenable: widget.currentPageNotifier,
+      valueListenable: currentPage,
       builder: (context, currentPage, child) {
-        if (widget.pageIndex == currentPage ||
-            widget.pageIndex == currentPage + 1) {
+        if (widget.pageIndex == currentPageIndex.value ||
+            widget.pageIndex == currentPageIndex.value + 1) {
           return Container(
             color: Colors.amber.shade100,
             child: CustomPaint(
