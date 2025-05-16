@@ -9,9 +9,10 @@ class NotepadWidget extends StatefulWidget {
     super.key,
     this.width = 350.0,
     this.height = 500,
+    this.backgroundColor = const Color(0xFFFFECB3),
     required this.children,
-    this.cutoffForward = 0.2,
-    this.cutoffBackward = 0.2,
+    this.cutoffForward = 0.8,
+    this.cutoffBackward = 0.8,
     // this.onFlipStart,
     // this.onFlippedEnd,
     this.headerHeight = 30,
@@ -21,6 +22,7 @@ class NotepadWidget extends StatefulWidget {
 
   final double width;
   final double height;
+  final Color backgroundColor;
   final List<Widget> children;
   final double cutoffForward;
   final double cutoffBackward;
@@ -39,7 +41,7 @@ class NotepadWidget extends StatefulWidget {
 
 class _NotepadWidgetState extends State<NotepadWidget>
     with TickerProviderStateMixin {
-  int notepadIndex = 0;
+  int notepadIndex = 0; 
   List<Widget> pages = [];
   final List<AnimationController> _controllers = []; // 각 페이지의 애니메이션 컨트롤러
   bool? _isForward;
@@ -60,12 +62,12 @@ class _NotepadWidgetState extends State<NotepadWidget>
   @override
   void initState() {
     super.initState();
-    // Initialize Global Variables
+    // 전역 변수 초기화
     imageData = {};
     currentPage = ValueNotifier(-1);
     currentPageIndex = ValueNotifier(0);
 
-    // Page setup
+    // 페이지 세팅
     for (var i = 0; i < widget.children.length; i++) {
       final controller = AnimationController(
         vsync: this,
@@ -78,6 +80,7 @@ class _NotepadWidgetState extends State<NotepadWidget>
         dragAmount: controller,
         pageIndex: i,
         key: Key("Page$i"),
+        backgroundColor: widget.backgroundColor,
         child: widget.children[i],
       );
       pages.add(page);
@@ -87,18 +90,21 @@ class _NotepadWidgetState extends State<NotepadWidget>
 
   bool get isFirstPage => notepadIndex == 0;
   bool get isLastPage => notepadIndex == pages.length - 1;
-  double dragSum = 0.0;
 
   void _onDragUpdate(DragUpdateDetails details, BoxConstraints dimens) {
     currentPage.value = notepadIndex;
-    dragSum += details.delta.dy; // 드래그 누적
+    final ratio = details.delta.dy / dimens.maxHeight;
 
-    // _controllers[notepadIndex].value += details.delta.dy;
-    if (dragSum < -dimens.maxHeight * widget.cutoffForward) {
-      _isForward = true;
-    } else if (dragSum > dimens.maxHeight * widget.cutoffBackward) {
-      _isForward = false;
+    // 페이지 이동 방향 결정
+    if (_isForward == null) {
+      if (details.delta.dy < 0) {
+        _isForward = true;
+      } else {
+        _isForward = false;
+      }
     }
+    // 컨트롤러에 드래그 전달
+    _controllers[notepadIndex].value += ratio;
   }
 
   Future<void> _onDragFinish() async {
@@ -125,16 +131,10 @@ class _NotepadWidgetState extends State<NotepadWidget>
         currentPage.value = -1; // 애니메이션 종료
       }
     } else {
-      // // 페이지 이동 없을 시 이전 상태로 복원
-      // if (dragSum < 0) {
-      //   _controllers[notepadIndex].reverse();
-      // } else {
-      //   _controllers[notepadIndex].forward();
-      // }
+    // 페이지 이동 없을 시 이전 상태로 복원
     }
 
     // 드래그 변수 초기화
-    dragSum = 0.0;
     _isForward = null;
   }
 

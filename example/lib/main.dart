@@ -32,12 +32,15 @@ class TestPage1 extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Text(
-        "Page1",
-        style: TextStyle(
+    return Container(
+      color: Colors.purple.shade300,
+      child: const Center(
+        child: Text(
+          "Page1",
+          style: TextStyle(
           fontWeight: FontWeight.bold,
           fontSize: 50,
+          ),
         ),
       ),
     );
@@ -49,12 +52,15 @@ class TestPage2 extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Text(
-        "Page2",
-        style: TextStyle(
+    return Container(
+      color: Colors.blue,
+      child: const Center(
+        child: Text(
+          "Page2",
+          style: TextStyle(
           fontWeight: FontWeight.bold,
           fontSize: 50,
+          ),
         ),
       ),
     );
@@ -66,13 +72,16 @@ class TestPage3 extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Text(
-        "Page3",
+    return Container(
+      color: Colors.green,
+      child: const Center(
+        child: Text(
+          "Page3",
         style: TextStyle(
           fontWeight: FontWeight.bold,
           fontSize: 50,
         ),
+      ),
       ),
     );
   }
