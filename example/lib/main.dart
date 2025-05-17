@@ -38,8 +38,8 @@ class TestPage1 extends StatelessWidget {
         child: Text(
           "Page1",
           style: TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 50,
+            fontWeight: FontWeight.bold,
+            fontSize: 50,
           ),
         ),
       ),
@@ -58,8 +58,8 @@ class TestPage2 extends StatelessWidget {
         child: Text(
           "Page2",
           style: TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 50,
+            fontWeight: FontWeight.bold,
+            fontSize: 50,
           ),
         ),
       ),
@@ -77,11 +77,11 @@ class TestPage3 extends StatelessWidget {
       child: const Center(
         child: Text(
           "Page3",
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 50,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 50,
+          ),
         ),
-      ),
       ),
     );
   }

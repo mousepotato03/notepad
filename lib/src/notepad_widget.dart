@@ -11,8 +11,8 @@ class NotepadWidget extends StatefulWidget {
     this.height = 500,
     this.backgroundColor = const Color(0xFFFFECB3),
     required this.children,
-    this.cutoffForward = 0.8,
-    this.cutoffBackward = 0.8,
+    this.cutoffForward = 0.6,
+    this.cutoffBackward = 0.6,
     // this.onFlipStart,
     // this.onFlippedEnd,
     this.headerHeight = 30,
@@ -41,7 +41,7 @@ class NotepadWidget extends StatefulWidget {
 
 class _NotepadWidgetState extends State<NotepadWidget>
     with TickerProviderStateMixin {
-  int notepadIndex = 0; 
+  int notepadIndex = 0;
   List<Widget> pages = [];
   final List<AnimationController> _controllers = []; // 각 페이지의 애니메이션 컨트롤러
   bool? _isForward;
@@ -95,47 +95,57 @@ class _NotepadWidgetState extends State<NotepadWidget>
     currentPage.value = notepadIndex;
     final ratio = details.delta.dy / dimens.maxHeight;
 
-    // 페이지 이동 방향 결정
+    // 드래그 방향 결정
     if (_isForward == null) {
       if (details.delta.dy < 0) {
         _isForward = true;
-      } else {
+      } else if (details.delta.dy > -0.2) {
         _isForward = false;
+      } else {
+        _isForward = null;
       }
     }
-    // 컨트롤러에 드래그 전달
+
+    if (_isForward == true && isLastPage) return;
+
     _controllers[notepadIndex].value += ratio;
   }
 
   Future<void> _onDragFinish() async {
-    if (_isForward != null) {
-      if (_isForward == true && !isLastPage) {
-        // Go Next Page
-        currentPage.value = notepadIndex; // 애니메이션 타겟 설정
+    final dragEndValue = _controllers[notepadIndex].value;
+
+    if (_isForward == true && !isLastPage) {
+      // Go Next Page
+      currentPage.value = notepadIndex; // 애니메이션 타겟 설정
+
+      // 임계값 애니메이션 처리
+      if (dragEndValue < widget.cutoffForward) {
         await _controllers[notepadIndex].reverse();
         if (mounted) {
           setState(() => notepadIndex++);
-          if (notepadIndex < pages.length) {
-            currentPageIndex.value = notepadIndex; //위젯 인덱스 업데이트
-          }
+          currentPageIndex.value = notepadIndex;
         }
-        currentPage.value = -1; // 애니메이션 종료
-      } else if (_isForward == false && !isFirstPage) {
-        // Go Previous Page
-        currentPage.value = notepadIndex - 1;
+      } else {
+        await _controllers[notepadIndex].forward();
+      }
+    } else if (_isForward == false && !isFirstPage) {
+      // Go Previous Page
+      currentPage.value = notepadIndex - 1;
+
+      // 임계값 애니메이션 처리
+      if (dragEndValue > widget.cutoffBackward) {
         await _controllers[notepadIndex - 1].forward();
         if (mounted) {
           setState(() => notepadIndex--);
-          currentPageIndex.value = notepadIndex; //위젯 인덱스 업데이트
+          currentPageIndex.value = notepadIndex;
         }
-        currentPage.value = -1; // 애니메이션 종료
+      } else {
+        await _controllers[notepadIndex - 1].reverse();
       }
-    } else {
-    // 페이지 이동 없을 시 이전 상태로 복원
     }
 
-    // 드래그 변수 초기화
     _isForward = null;
+    currentPage.value = -1; // 애니메이션 종료
   }
 
   @override
